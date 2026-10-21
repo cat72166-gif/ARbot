@@ -1,5 +1,22 @@
 import 'dotenv/config';
 import { chromium } from 'playwright';
+import { createServer } from 'node:http';
+
+// Lightweight HTTP health endpoint for Render and uptime monitors.
+const healthPort = Number(process.env.PORT || 10000);
+const healthServer = createServer((request, response) => {
+  const pathname = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`).pathname;
+  if (pathname === '/' || pathname === '/health') {
+    response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ status: 'ok', service: 'ARbot' }));
+    return;
+  }
+  response.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
+  response.end(JSON.stringify({ status: 'not_found' }));
+});
+healthServer.listen(healthPort, '0.0.0.0', () => {
+  console.log(`Health endpoint listening on port ${healthPort} (GET /health)`);
+});
 
 const required = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'];
 const missing = required.filter((key) => !process.env[key]);

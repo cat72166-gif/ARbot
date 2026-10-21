@@ -42,3 +42,23 @@ This monitor checks AR BET's live soccer page every 45 seconds and sends a Teleg
 - The scanner follows AR BET's scrollable live-match panels and does not intentionally cap the number of matches. It stops after the list reaches the bottom and remains unchanged for several passes; the safety limit is 80 scroll passes.
 - If AR BET presents a CAPTCHA or requires a login, set `HEADLESS=false` for a visible browser window and complete it there; the site can also change its page layout, in which case the text parser in `src/index.js` may need a small update.
 - Never share `.env`; it contains the secret Telegram bot token.
+
+
+## Deploy on Render
+
+This project includes a lightweight health endpoint for Render and UptimeRobot:
+
+- `GET /health` returns HTTP `200` with `{"status":"ok","service":"ARbot"}`.
+- `GET /` returns the same health response.
+- Render supplies the `PORT` environment variable automatically.
+
+Suggested Render Web Service settings:
+
+- **Build Command:** `npm install && npx playwright install chromium`
+- **Start Command:** `npm start`
+- **Health Check Path:** `/health`
+- Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` under Render **Environment**. Add any optional variables from `.env.example` as needed.
+
+In UptimeRobot, create an **HTTP(s)** monitor using `https://YOUR-RENDER-SERVICE.onrender.com/health`.
+
+Note: UptimeRobot health checks do not guarantee that a Render Free Web Service will stay awake. Render's free service can sleep after inactivity, and external pings should not be relied on as a 24/7 hosting workaround. Also ensure Chromium can launch in Render's Linux environment; if the deploy logs show missing system libraries, adjust the build command/runtime dependencies accordingly.
